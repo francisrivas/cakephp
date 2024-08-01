@@ -26,6 +26,7 @@ use Cake\Database\Exception\MissingConnectionException;
 use Cake\Database\Exception\MissingDriverException;
 use Cake\Database\Exception\MissingExtensionException;
 use Cake\Database\Exception\NestedTransactionRollbackException;
+use Cake\Database\Query\SelectQuery;
 use Cake\Database\Schema\CachedCollection;
 use Cake\Database\StatementInterface;
 use Cake\Datasource\ConnectionManager;
@@ -48,7 +49,7 @@ use function Cake\Core\namespaceSplit;
 class ConnectionTest extends TestCase
 {
     /**
-     * @var array<string>
+     * @var list<string>
      */
     protected array $fixtures = ['core.Things'];
 
@@ -205,16 +206,55 @@ class ConnectionTest extends TestCase
     }
 
     /**
-     * Test providing the same read and write config uses a shared driver.
+     * Tests that unique drivers are created if roles are specified even with same config
      */
-    public function testSameReadWriteDriver(): void
+    public function testSameReadWriteConfig(): void
     {
         $this->skipIf(!extension_loaded('pdo_sqlite'), 'Skipping as SQLite extension is missing');
         $config = ConnectionManager::getConfig('test') + ['read' => ['database' => 'read_test.db'], 'write' => ['database' => 'read_test.db']];
         $connection = new Connection($config);
-        $this->assertSame($connection->getDriver(Connection::ROLE_READ), $connection->getDriver(Connection::ROLE_WRITE));
-        $this->assertSame(Connection::ROLE_WRITE, $connection->getDriver(Connection::ROLE_READ)->getRole());
+        $this->assertNotSame($connection->getDriver(Connection::ROLE_READ), $connection->getDriver(Connection::ROLE_WRITE));
+        $this->assertSame(Connection::ROLE_READ, $connection->getDriver(Connection::ROLE_READ)->getRole());
         $this->assertSame(Connection::ROLE_WRITE, $connection->getDriver(Connection::ROLE_WRITE)->getRole());
+    }
+
+    /**
+     * Tests that unique drivers are created if roles are specified even with empty config
+     */
+    public function testEmptyReadWriteConfig(): void
+    {
+        $this->skipIf(!extension_loaded('pdo_sqlite'), 'Skipping as SQLite extension is missing');
+        $config = ConnectionManager::getConfig('test') + ['read' => [], 'write' => []];
+        $connection = new Connection($config);
+        $this->assertNotSame($connection->getDriver(Connection::ROLE_READ), $connection->getDriver(Connection::ROLE_WRITE));
+        $this->assertSame(Connection::ROLE_READ, $connection->getDriver(Connection::ROLE_READ)->getRole());
+        $this->assertSame(Connection::ROLE_WRITE, $connection->getDriver(Connection::ROLE_WRITE)->getRole());
+    }
+
+    /**
+     * Tests that unique drivers are created if roles are specified even with empty config
+     */
+    public function testSingleEmptyReadWriteConfig(): void
+    {
+        $this->skipIf(!extension_loaded('pdo_sqlite'), 'Skipping as SQLite extension is missing');
+        $config = ConnectionManager::getConfig('test') + ['read' => []];
+        $connection = new Connection($config);
+        $this->assertNotSame($connection->getDriver(Connection::ROLE_READ), $connection->getDriver(Connection::ROLE_WRITE));
+        $this->assertSame(Connection::ROLE_READ, $connection->getDriver(Connection::ROLE_READ)->getRole());
+        $this->assertSame(Connection::ROLE_WRITE, $connection->getDriver(Connection::ROLE_WRITE)->getRole());
+    }
+
+    /**
+     * Test role-specific config values override defaults
+     */
+    public function testRoleSpecificOverrides(): void
+    {
+        $this->skipIf(!extension_loaded('pdo_sqlite'), 'Skipping as SQLite extension is missing');
+        $config = ConnectionManager::getConfig('test') + ['log' => true, 'write' => ['database' => 'read_test.db', 'log' => false]];
+        $connection = new Connection($config);
+        $this->assertNotSame($connection->getDriver(Connection::ROLE_READ), $connection->getDriver(Connection::ROLE_WRITE));
+        $this->assertNotNull($connection->getDriver(Connection::ROLE_READ)->getLogger());
+        $this->assertNull($connection->getDriver(Connection::ROLE_WRITE)->getLogger());
     }
 
     public function testDisabledReadWriteDriver(): void
@@ -1128,6 +1168,17 @@ class ConnectionTest extends TestCase
             $this->assertInstanceOf(Exception::class, $e);
             $prop->setValue($conn, $oldDriver);
             $conn->rollback();
+        }
+    }
+
+    public function testRunAndStatementIteration(): void
+    {
+        $query = new SelectQuery($this->connection);
+        $query->select(fields: ['field' => $query->newExpr('1')]);
+
+        $statement = $this->connection->run($query);
+        foreach ($statement as $row) {
+            $this->assertEquals(['field' => 1], $row);
         }
     }
 }

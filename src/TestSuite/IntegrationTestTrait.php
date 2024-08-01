@@ -18,6 +18,7 @@ namespace Cake\TestSuite;
 use Cake\Controller\Controller;
 use Cake\Core\Configure;
 use Cake\Core\HttpApplicationInterface;
+use Cake\Core\PluginApplicationInterface;
 use Cake\Core\TestSuite\ContainerStubTrait;
 use Cake\Database\Exception\DatabaseException;
 use Cake\Error\Renderer\WebExceptionRenderer;
@@ -27,6 +28,7 @@ use Cake\Form\FormProtector;
 use Cake\Http\Middleware\CsrfProtectionMiddleware;
 use Cake\Http\Session;
 use Cake\Routing\Router;
+use Cake\Routing\RoutingApplicationInterface;
 use Cake\TestSuite\Constraint\Response\BodyContains;
 use Cake\TestSuite\Constraint\Response\BodyEmpty;
 use Cake\TestSuite\Constraint\Response\BodyEquals;
@@ -64,6 +66,7 @@ use Cake\Utility\Security;
 use Exception;
 use Laminas\Diactoros\Uri;
 use PHPUnit\Exception as PHPUnitException;
+use PHPUnit\Framework\Attributes\After;
 use Psr\Http\Message\ResponseInterface;
 use Throwable;
 
@@ -197,10 +200,10 @@ trait IntegrationTestTrait
     /**
      * Clears the state used for requests.
      *
-     * @after
      * @return void
      * @psalm-suppress PossiblyNullPropertyAssignmentValue
      */
+    #[After]
     public function cleanup(): void
     {
         $this->_request = [];
@@ -491,8 +494,8 @@ trait IntegrationTestTrait
      */
     protected function _sendRequest(array|string $url, string $method, array|string $data = []): void
     {
+        $url = $this->resolveUrl($url);
         $dispatcher = $this->_makeDispatcher();
-        $url = $dispatcher->resolveUrl($url);
 
         try {
             $request = $this->_buildRequest($url, $method, $data);
@@ -509,6 +512,55 @@ trait IntegrationTestTrait
             // Simulate the global exception handler being invoked.
             $this->_handleError($e);
         }
+    }
+
+    /**
+     * Resolve the provided URL into a string.
+     *
+     * @param array|string $url The URL array/string to resolve.
+     * @return string
+     * @since 5.1.0
+     */
+    public function resolveUrl(array|string $url): string
+    {
+        // If we need to resolve a Route URL but there are no routes, load routes.
+        if (is_array($url) && count(Router::getRouteCollection()->routes()) === 0) {
+            return $this->resolveRoute($url);
+        }
+
+        return Router::url($url);
+    }
+
+    /**
+     * Convert a URL array into a string URL via routing.
+     *
+     * @param array $url The url to resolve
+     * @return string
+     * @since 5.1.0
+     */
+    protected function resolveRoute(array $url): string
+    {
+        $app = $this->createApp();
+
+        // Simulate application bootstrap and route loading.
+        // We need both to ensure plugins are loaded.
+        $app->bootstrap();
+        if ($app instanceof PluginApplicationInterface) {
+            $app->pluginBootstrap();
+        }
+        $builder = Router::createRouteBuilder('/');
+
+        if ($app instanceof RoutingApplicationInterface) {
+            $app->routes($builder);
+        }
+        if ($app instanceof PluginApplicationInterface) {
+            $app->pluginRoutes($builder);
+        }
+
+        $out = Router::url($url);
+        Router::resetRoutes();
+
+        return $out;
     }
 
     /**

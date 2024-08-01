@@ -39,6 +39,7 @@ use Closure;
 use Exception;
 use LogicException;
 use Mockery;
+use PHPUnit\Framework\Attributes\WithoutErrorHandler;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase as BaseTestCase;
 use ReflectionClass;
@@ -56,7 +57,7 @@ abstract class TestCase extends BaseTestCase
     /**
      * Fixtures used by this test case.
      *
-     * @var array<string>
+     * @var list<string>
      */
     protected array $fixtures = [];
 
@@ -71,6 +72,13 @@ abstract class TestCase extends BaseTestCase
      * @var array
      */
     protected array $_configure = [];
+
+    /**
+     * Plugins to be loaded after app instance is created ContainerStubTrait::creatApp()
+     *
+     * @var array
+     */
+    protected array $appPluginsToLoad = [];
 
     /**
      * @var \Cake\Error\PhpError|null
@@ -156,6 +164,7 @@ abstract class TestCase extends BaseTestCase
      * @param \Closure $callable callable function that will receive asserts
      * @return void
      */
+    #[WithoutErrorHandler]
     public function deprecated(Closure $callable): void
     {
         $duplicate = Configure::read('Error.allowDuplicateDeprecations');
@@ -307,6 +316,8 @@ abstract class TestCase extends BaseTestCase
      */
     public function loadPlugins(array $plugins = []): BaseApplication
     {
+        $this->appPluginsToLoad = $plugins;
+
         /**
          * @psalm-suppress MissingTemplateParam
          */
@@ -653,7 +664,7 @@ abstract class TestCase extends BaseTestCase
                 $tags = (string)$tags;
             }
             $i++;
-            if (is_string($tags) && $tags[0] === '<') {
+            if (is_string($tags) && str_starts_with($tags, '<')) {
                 $tags = [substr($tags, 1) => []];
             } elseif (is_string($tags)) {
                 $tagsTrimmed = preg_replace('/\s+/m', '', $tags);
@@ -945,8 +956,15 @@ abstract class TestCase extends BaseTestCase
         }
 
         if ($nonExistingMethods) {
-            trigger_error('Adding non existent methods to your model ' .
-                'via testing will not work in future PHPUnit versions.', E_USER_DEPRECATED);
+            trigger_error(
+                sprintf(
+                    'Adding non-existent methods (%s) to model `%s` ' .
+                    'when mocking will not work in future PHPUnit versions.',
+                    join(',', $nonExistingMethods),
+                    $alias
+                ),
+                E_USER_DEPRECATED
+            );
             $builder->addMethods($nonExistingMethods);
         }
 
@@ -1033,7 +1051,7 @@ abstract class TestCase extends BaseTestCase
     /**
      * Get the fixtures this test should use.
      *
-     * @return array<string>
+     * @return list<string>
      */
     public function getFixtures(): array
     {

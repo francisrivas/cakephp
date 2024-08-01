@@ -43,14 +43,14 @@ class I18nExtractCommand extends Command
     /**
      * Paths to use when looking for strings
      *
-     * @var array<string>
+     * @var list<string>
      */
     protected array $_paths = [];
 
     /**
      * Files from where to extract
      *
-     * @var array<string>
+     * @var list<string>
      */
     protected array $_files = [];
 
@@ -99,7 +99,7 @@ class I18nExtractCommand extends Command
     /**
      * An array of directories to exclude.
      *
-     * @var array<string>
+     * @var list<string>
      */
     protected array $_exclude = [];
 
@@ -207,7 +207,7 @@ class I18nExtractCommand extends Command
         }
 
         if ($args->hasOption('exclude-plugins') && $this->_isExtractingApp()) {
-            $this->_exclude = array_merge($this->_exclude, App::path('plugins'));
+            $this->_exclude = array_merge($this->_exclude, array_values(App::path('plugins')));
         }
 
         if ($this->_extractCore) {
@@ -822,7 +822,7 @@ class I18nExtractCommand extends Command
         if ($this->_exclude) {
             $exclude = [];
             foreach ($this->_exclude as $e) {
-                if (DIRECTORY_SEPARATOR !== '\\' && $e[0] !== DIRECTORY_SEPARATOR) {
+                if (DIRECTORY_SEPARATOR !== '\\' && !str_starts_with($e, DIRECTORY_SEPARATOR)) {
                     $e = DIRECTORY_SEPARATOR . $e;
                 }
                 $exclude[] = preg_quote($e, '/');
@@ -857,7 +857,7 @@ class I18nExtractCommand extends Command
      */
     protected function _isExtractingApp(): bool
     {
-        /** @psalm-suppress UndefinedConstant */
+        /** @psalm-suppress UndefinedConstant, TypeDoesNotContainType */
         return $this->_paths === [APP];
     }
 

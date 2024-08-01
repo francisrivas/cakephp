@@ -58,7 +58,7 @@ class SchemaLoaderTest extends TestCase
             $GLOBALS['__PHPUNIT_BOOTSTRAP'] = $this->restore;
         }
 
-        (new ConnectionHelper())->dropTables('test', ['schema_loader_test_one', 'schema_loader_test_two']);
+        ConnectionHelper::dropTables('test', ['schema_loader_test_one', 'schema_loader_test_two']);
         ConnectionManager::drop('test_schema_loader');
 
         if (file_exists($this->truncateDbFile)) {

@@ -20,6 +20,7 @@ use Cake\Console\TestSuite\ConsoleIntegrationTestTrait;
 use Cake\Console\TestSuite\MissingConsoleInputException;
 use Cake\TestSuite\TestCase;
 use PHPUnit\Framework\AssertionFailedError;
+use PHPUnit\Framework\Attributes\DataProvider;
 use stdClass;
 
 class ConsoleIntegrationTestTraitTest extends TestCase
@@ -77,6 +78,21 @@ class ConsoleIntegrationTestTraitTest extends TestCase
         $this->exec('format_specifier_command');
         $this->assertOutputContains('format specifier');
         $this->assertExitCode(CommandInterface::CODE_SUCCESS);
+    }
+
+    /**
+     * tests exec clears output
+     */
+    public function testExecClearsOutput(): void
+    {
+        $this->exec('sample');
+        $this->assertOutputContains('SampleCommand');
+        $this->assertExitCode(CommandInterface::CODE_SUCCESS);
+
+        $this->exec('abort');
+        $this->assertOutputNotContains('SampleCommand');
+        $this->assertErrorContains('Command aborted');
+        $this->assertExitCode(127);
     }
 
     /**
@@ -208,8 +224,8 @@ class ConsoleIntegrationTestTraitTest extends TestCase
      * @param string $message Expected failure message
      * @param string $command Command to test
      * @param mixed ...$rest
-     * @dataProvider assertionFailureMessagesProvider
      */
+    #[DataProvider('assertionFailureMessagesProvider')]
     public function testAssertionFailureMessages($assertion, $message, $command, ...$rest): void
     {
         $this->expectException(AssertionFailedError::class);

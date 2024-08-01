@@ -37,7 +37,7 @@ class BelongsToTest extends TestCase
     /**
      * Fixtures to use.
      *
-     * @var array<string>
+     * @var list<string>
      */
     protected array $fixtures = ['core.Articles', 'core.Authors', 'core.Comments'];
 
@@ -461,7 +461,7 @@ class BelongsToTest extends TestCase
     {
         $this->setAppNamespace('TestApp');
         $articles = $this->getTableLocator()->get('Articles');
-        $articles->belongsTo('Authors')
+        $articles->associations()->get('Authors')
             ->setFinder('formatted');
 
         $query = $articles->find()

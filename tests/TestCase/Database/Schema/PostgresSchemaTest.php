@@ -24,6 +24,7 @@ use Cake\Database\Schema\TableSchema;
 use Cake\Datasource\ConnectionManager;
 use Cake\TestSuite\TestCase;
 use PDO;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 /**
  * Postgres schema test case.
@@ -248,14 +249,30 @@ SQL;
                 ['type' => 'JSONB'],
                 ['type' => 'json', 'length' => null],
             ],
+            // Geospatial
+            [
+                ['type' => 'GEOGRAPHY(GEOMETRY, 4326)'],
+                ['type' => 'geometry', 'length' => null, 'srid' => 4326],
+            ],
+            [
+                ['type' => 'GEOGRAPHY(POINT, 4326)'],
+                ['type' => 'point', 'length' => null, 'srid' => 4326],
+            ],
+            [
+                ['type' => 'GEOGRAPHY(LINESTRING, 4326)'],
+                ['type' => 'linestring', 'length' => null, 'srid' => 4326],
+            ],
+            [
+                ['type' => 'GEOGRAPHY(POLYGON, 4326)'],
+                ['type' => 'polygon', 'length' => null, 'srid' => 4326],
+            ],
         ];
     }
 
     /**
      * Test parsing Postgres column types from field description.
-     *
-     * @dataProvider convertColumnProvider
      */
+    #[DataProvider('convertColumnProvider')]
     public function testConvertColumn(array $field, array $expected): void
     {
         $field += [
@@ -949,14 +966,54 @@ SQL;
                 ['type' => 'timestampfractional', 'null' => false, 'default' => 'CURRENT_TIMESTAMP'],
                 '"current_timestamp_fractional" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP',
             ],
+            // Geospatial
+            [
+                'g',
+                ['type' => 'geometry'],
+                '"g" GEOGRAPHY(GEOMETRY, 4326)',
+            ],
+            [
+                'g',
+                ['type' => 'geometry', 'null' => false, 'srid' => 4326],
+                '"g" GEOGRAPHY(GEOMETRY, 4326) NOT NULL',
+            ],
+            [
+                'p',
+                ['type' => 'point'],
+                '"p" GEOGRAPHY(POINT, 4326)',
+            ],
+            [
+                'p',
+                ['type' => 'point', 'null' => false, 'srid' => 4326],
+                '"p" GEOGRAPHY(POINT, 4326) NOT NULL',
+            ],
+            [
+                'l',
+                ['type' => 'linestring'],
+                '"l" GEOGRAPHY(LINESTRING, 4326)',
+            ],
+            [
+                'l',
+                ['type' => 'linestring', 'null' => false, 'srid' => 4326],
+                '"l" GEOGRAPHY(LINESTRING, 4326) NOT NULL',
+            ],
+            [
+                'p',
+                ['type' => 'polygon'],
+                '"p" GEOGRAPHY(POLYGON, 4326)',
+            ],
+            [
+                'p',
+                ['type' => 'polygon', 'null' => false, 'srid' => 4326],
+                '"p" GEOGRAPHY(POLYGON, 4326) NOT NULL',
+            ],
         ];
     }
 
     /**
      * Test generating column definitions
-     *
-     * @dataProvider columnSqlProvider
      */
+    #[DataProvider('columnSqlProvider')]
     public function testColumnSql(string $name, array $data, string $expected): void
     {
         $driver = $this->_getMockedDriver();
@@ -1041,9 +1098,8 @@ SQL;
 
     /**
      * Test the constraintSql method.
-     *
-     * @dataProvider constraintSqlProvider
      */
+    #[DataProvider('constraintSqlProvider')]
     public function testConstraintSql(string $name, array $data, string $expected): void
     {
         $driver = $this->_getMockedDriver();

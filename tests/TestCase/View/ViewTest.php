@@ -22,6 +22,7 @@ use Cake\Core\App;
 use Cake\Core\Configure;
 use Cake\Core\Exception\CakeException;
 use Cake\Core\Plugin;
+use Cake\Database\Exception\QueryException;
 use Cake\Event\EventInterface;
 use Cake\Http\Response;
 use Cake\Http\ServerRequest;
@@ -34,10 +35,11 @@ use Error;
 use Exception;
 use InvalidArgumentException;
 use LogicException;
+use PDOException;
+use PHPUnit\Framework\Attributes\DataProvider;
 use RuntimeException;
 use TestApp\Controller\ThemePostsController;
 use TestApp\Controller\ViewPostsController;
-use TestApp\Error\Exception\MyPDOException;
 use TestApp\View\Helper\TestBeforeAfterHelper;
 use TestApp\View\Object\TestObjectWithoutToString;
 use TestApp\View\Object\TestObjectWithToString;
@@ -53,7 +55,7 @@ class ViewTest extends TestCase
     /**
      * Fixtures used in this test.
      *
-     * @var array<string>
+     * @var list<string>
      */
     protected array $fixtures = ['core.Posts', 'core.Users'];
 
@@ -1087,8 +1089,8 @@ class ViewTest extends TestCase
      */
     public function testRenderUsingLayoutArgument(): void
     {
-        $error = new MyPDOException();
-        $error->queryString = 'this is sql string';
+        $pdoException = $this->getMockBuilder(PDOException::class)->getMock();
+        $error = new QueryException('this is sql string', $pdoException);
         $exceptions = [$error];
         $message = 'it works';
         $trace = $error->getTrace();
@@ -1361,8 +1363,8 @@ class ViewTest extends TestCase
      * Test appending to a block with append.
      *
      * @param mixed $value Value
-     * @dataProvider blockValueProvider
      */
+    #[DataProvider('blockValueProvider')]
     public function testBlockAppend($value): void
     {
         $this->View->assign('testBlock', 'Block');
@@ -1390,8 +1392,8 @@ class ViewTest extends TestCase
      * Test prepending to a block with prepend.
      *
      * @param mixed $value Value
-     * @dataProvider blockValueProvider
      */
+    #[DataProvider('blockValueProvider')]
     public function testBlockPrepend($value): void
     {
         $this->View->assign('test', 'Block');

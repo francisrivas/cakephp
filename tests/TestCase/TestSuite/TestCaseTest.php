@@ -29,6 +29,7 @@ use Cake\Test\Fixture\FixturizedTestCase;
 use Cake\TestSuite\TestCase;
 use Exception;
 use PHPUnit\Framework\AssertionFailedError;
+use PHPUnit\Framework\Attributes\WithoutErrorHandler;
 use PHPUnit\Framework\TestStatus\Skipped;
 use PHPUnit\Framework\TestStatus\Success;
 use TestApp\Model\Table\SecondaryPostsTable;
@@ -39,6 +40,12 @@ use function Cake\Core\deprecationWarning;
  */
 class TestCaseTest extends TestCase
 {
+    public function setUp(): void
+    {
+        parent::setUp();
+        $this->clearPlugins();
+    }
+
     /**
      * tests trying to assertEventFired without configuring an event list
      */
@@ -222,6 +229,7 @@ class TestCaseTest extends TestCase
     /**
      * test deprecated() with duplicate deprecation with same messsage and line
      */
+    #[WithoutErrorHandler]
     public function testDeprecatedWithDuplicatedDeprecation(): void
     {
         /**
@@ -380,19 +388,21 @@ class TestCaseTest extends TestCase
         $Tags = $this->getMockForModel('Tags', ['save']);
         $this->assertSame('TestApp\Model\Entity\Tag', $Tags->getEntityClass());
 
-        $SluggedPosts = $this->getMockForModel('SluggedPosts', ['slugify']);
-        $SluggedPosts->expects($this->once())
-            ->method('slugify')
-            ->with('some value')
-            ->willReturn('mocked');
-        $this->assertSame('mocked', $SluggedPosts->slugify('some value'));
+        $this->deprecated(function () {
+            $SluggedPosts = $this->getMockForModel('SluggedPosts', ['slugify']);
+            $SluggedPosts->expects($this->once())
+                ->method('slugify')
+                ->with('some value')
+                ->willReturn('mocked');
+            $this->assertSame('mocked', $SluggedPosts->slugify('some value'));
 
-        $SluggedPosts = $this->getMockForModel('SluggedPosts', ['save', 'slugify']);
-        $SluggedPosts->expects($this->once())
-            ->method('slugify')
-            ->with('some value two')
-            ->willReturn('mocked');
-        $this->assertSame('mocked', $SluggedPosts->slugify('some value two'));
+            $SluggedPosts = $this->getMockForModel('SluggedPosts', ['save', 'slugify']);
+            $SluggedPosts->expects($this->once())
+                ->method('slugify')
+                ->with('some value two')
+                ->willReturn('mocked');
+            $this->assertSame('mocked', $SluggedPosts->slugify('some value two'));
+        });
     }
 
     /**

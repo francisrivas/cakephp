@@ -37,6 +37,7 @@ use Cake\View\Helper\FormHelper;
 use Cake\View\View;
 use Cake\View\Widget\WidgetLocator;
 use InvalidArgumentException;
+use PHPUnit\Framework\Attributes\DataProvider;
 use ReflectionProperty;
 use TestApp\Model\Entity\Article;
 use TestApp\Model\Enum\ArticleStatus;
@@ -58,7 +59,7 @@ class FormHelperTest extends TestCase
     /**
      * Fixtures to be used
      *
-     * @var array<string>
+     * @var list<string>
      */
     protected array $fixtures = ['core.Articles', 'core.Comments'];
 
@@ -357,9 +358,9 @@ class FormHelperTest extends TestCase
     /**
      * Test default context selection in create()
      *
-     * @dataProvider contextSelectionProvider
      * @param mixed $data
      */
+    #[DataProvider('contextSelectionProvider')]
     public function testCreateContextSelectionBuiltIn($data, string $class): void
     {
         $this->Form->create($data);
@@ -508,7 +509,6 @@ class FormHelperTest extends TestCase
                 'data-validity-message' => 'This field cannot be left empty',
                 'oninvalid' => 'this.setCustomValidity(&#039;&#039;); if (!this.value) this.setCustomValidity(this.dataset.validityMessage)',
                 'oninput' => 'this.setCustomValidity(&#039;&#039;)',
-                'aria-required' => 'true',
             ],
             '/div',
         ];
@@ -597,9 +597,8 @@ class FormHelperTest extends TestCase
 
     /**
      * test the create() method
-     *
-     * @dataProvider requestTypeProvider
      */
+    #[DataProvider('requestTypeProvider')]
     public function testCreateTypeOptions(string $type, string $method, string $override): void
     {
         $encoding = strtolower(Configure::read('App.encoding'));
@@ -2581,7 +2580,6 @@ class FormHelperTest extends TestCase
                 'data-validity-message' => 'This field cannot be left empty',
                 'oninvalid' => 'this.setCustomValidity(&#039;&#039;); if (!this.value) this.setCustomValidity(this.dataset.validityMessage)',
                 'oninput' => 'this.setCustomValidity(&#039;&#039;)',
-                'aria-required' => 'true',
                 'aria-invalid' => 'true',
                 'aria-describedby' => 'title-error',
             ],
@@ -2604,7 +2602,6 @@ class FormHelperTest extends TestCase
                 'type' => 'text',
                 'name' => 'title',
                 'id' => 'title',
-                'aria-required' => 'true',
                 'aria-invalid' => 'true',
                 'aria-describedby' => 'title-error',
                 'class' => 'form-error',
@@ -6425,7 +6422,6 @@ class FormHelperTest extends TestCase
             'Title',
             '/label',
             'input' => [
-                'aria-required' => 'true',
                 'type' => 'text',
                 'required' => 'required',
                 'placeholder' => 'Add title',
@@ -6452,7 +6448,6 @@ class FormHelperTest extends TestCase
         $expected = [
             'div' => ['class' => 'input text required'],
             'input' => [
-                'aria-required' => 'true',
                 'type' => 'text',
                 'required' => 'required',
                 'id' => 'title',
@@ -7467,9 +7462,8 @@ class FormHelperTest extends TestCase
      * testDateTimeWithFractional method
      *
      * Test that datetime() works with datetimefractional.
-     *
-     * @dataProvider fractionalTypeProvider
      */
+    #[DataProvider('fractionalTypeProvider')]
     public function testDateTimeWithFractional(string $type): void
     {
         $this->Form->create([
@@ -7496,9 +7490,8 @@ class FormHelperTest extends TestCase
      * testControlWithFractional method
      *
      * Test that control() works with datetimefractional.
-     *
-     * @dataProvider fractionalTypeProvider
      */
+    #[DataProvider('fractionalTypeProvider')]
     public function testControlWithFractional(string $type): void
     {
         $this->Form->create([
@@ -7761,7 +7754,6 @@ class FormHelperTest extends TestCase
                 '/label',
                 'textarea' => [
                     'name',
-                    'aria-required' => 'true',
                     'required' => 'required',
                     'id' => '0-comments-1-comment',
                     'rows' => 5,
@@ -7868,7 +7860,6 @@ class FormHelperTest extends TestCase
             'Password',
             '/label',
             'input' => [
-                'aria-required' => 'true',
                 'id' => 'password',
                 'name' => 'password',
                 'type' => 'password',
@@ -7887,7 +7878,6 @@ class FormHelperTest extends TestCase
             'Phone',
             '/label',
             'input' => [
-                'aria-required' => 'true',
                 'id' => 'phone',
                 'name' => 'phone',
                 'type' => 'tel',
@@ -7907,7 +7897,6 @@ class FormHelperTest extends TestCase
             'Email',
             '/label',
             'input' => [
-                'aria-required' => 'true',
                 'id' => 'email',
                 'name' => 'email',
                 'type' => 'email',
@@ -7927,7 +7916,6 @@ class FormHelperTest extends TestCase
             'label' => ['for' => 'accept-tos'],
             [
                 'input' => [
-                    'aria-required' => 'true',
                     'required' => 'required',
                     'type' => 'checkbox',
                     'name' => 'accept_tos',
@@ -7974,7 +7962,6 @@ class FormHelperTest extends TestCase
             'Password',
             '/label',
             'input' => [
-                'aria-required' => 'true',
                 'id' => 'password',
                 'name' => 'password',
                 'type' => 'password',
@@ -7991,7 +7978,6 @@ class FormHelperTest extends TestCase
             'Phone',
             '/label',
             'input' => [
-                'aria-required' => 'true',
                 'id' => 'phone',
                 'name' => 'phone',
                 'type' => 'tel',
@@ -8013,7 +7999,6 @@ class FormHelperTest extends TestCase
             'Email',
             '/label',
             'input' => [
-                'aria-required' => 'true',
                 'id' => 'email',
                 'name' => 'email',
                 'type' => 'email',
@@ -8052,7 +8037,6 @@ class FormHelperTest extends TestCase
                 'type' => 'text',
                 'name' => 'title',
                 'id' => 'title',
-                'aria-required' => 'true',
                 'required' => 'required',
                 'data-validity-message' => 'This field cannot be left empty',
                 'oninvalid' => 'this.setCustomValidity(&#039;&#039;); if (!this.value) this.setCustomValidity(this.dataset.validityMessage)',
@@ -8929,7 +8913,6 @@ class FormHelperTest extends TestCase
             'Title',
             '/label',
             'input' => [
-                'aria-required' => 'true',
                 'id',
                 'name' => 'title',
                 'type' => 'text',
@@ -8974,7 +8957,6 @@ class FormHelperTest extends TestCase
             'Title',
             '/label',
             'input' => [
-                'aria-required' => 'true',
                 'id',
                 'name' => 'title',
                 'type' => 'text',
@@ -9011,7 +8993,6 @@ class FormHelperTest extends TestCase
             'Title',
             '/label',
             'input' => [
-                'aria-required' => 'true',
                 'id',
                 'name' => 'title',
                 'type' => 'text',
@@ -9048,7 +9029,6 @@ class FormHelperTest extends TestCase
             'Title',
             '/label',
             'input' => [
-                'aria-required' => 'true',
                 'id',
                 'name' => 'title',
                 'type' => 'text',
@@ -9091,7 +9071,6 @@ class FormHelperTest extends TestCase
             'Title',
             '/label',
             'input' => [
-                'aria-required' => 'true',
                 'id',
                 'name' => 'title',
                 'type' => 'text',
@@ -9126,7 +9105,6 @@ class FormHelperTest extends TestCase
             'Title',
             '/label',
             'input' => [
-                'aria-required' => 'true',
                 'id',
                 'name' => 'title',
                 'type' => 'text',

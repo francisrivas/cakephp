@@ -25,6 +25,7 @@ use Cake\Datasource\ConnectionInterface;
 use Cake\Datasource\ConnectionManager;
 use Cake\TestSuite\TestCase;
 use PDO;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 /**
  * SQL Server schema test case.
@@ -299,14 +300,28 @@ SQL;
                 null,
                 ['type' => 'binary', 'length' => TableSchema::LENGTH_LONG],
             ],
+            // Geospatial types
+            [
+                'GEOMETRY',
+                null,
+                null,
+                null,
+                ['type' => 'geometry', 'null' => true],
+            ],
+            [
+                'GEOGRAPHY',
+                null,
+                null,
+                null,
+                ['type' => 'point', 'null' => true],
+            ],
         ];
     }
 
     /**
      * Test parsing Sqlserver column types from field description.
-     *
-     * @dataProvider convertColumnProvider
      */
+    #[DataProvider('convertColumnProvider')]
     public function testConvertColumn(string $type, ?int $length, ?int $precision, ?int $scale, array $expected): void
     {
         $field = [
@@ -827,14 +842,54 @@ SQL;
                 ['type' => 'timestamp', 'null' => true],
                 '[created] DATETIME2 DEFAULT NULL',
             ],
+            // Geospatial
+            [
+                'g',
+                ['type' => 'geometry'],
+                '[g] GEOMETRY',
+            ],
+            [
+                'g',
+                ['type' => 'geometry', 'null' => false, 'srid' => 4326],
+                '[g] GEOMETRY NOT NULL',
+            ],
+            [
+                'p',
+                ['type' => 'point'],
+                '[p] GEOGRAPHY',
+            ],
+            [
+                'p',
+                ['type' => 'point', 'null' => false, 'srid' => 4326],
+                '[p] GEOGRAPHY NOT NULL',
+            ],
+            [
+                'l',
+                ['type' => 'linestring'],
+                '[l] GEOGRAPHY',
+            ],
+            [
+                'l',
+                ['type' => 'linestring', 'null' => false, 'srid' => 4326],
+                '[l] GEOGRAPHY NOT NULL',
+            ],
+            [
+                'p',
+                ['type' => 'polygon'],
+                '[p] GEOGRAPHY',
+            ],
+            [
+                'p',
+                ['type' => 'polygon', 'null' => false, 'srid' => 4326],
+                '[p] GEOGRAPHY NOT NULL',
+            ],
         ];
     }
 
     /**
      * Test generating column definitions
-     *
-     * @dataProvider columnSqlProvider
      */
+    #[DataProvider('columnSqlProvider')]
     public function testColumnSql(string $name, array $data, string $expected): void
     {
         $driver = $this->_getMockedDriver();
@@ -897,9 +952,8 @@ SQL;
 
     /**
      * Test the constraintSql method.
-     *
-     * @dataProvider constraintSqlProvider
      */
+    #[DataProvider('constraintSqlProvider')]
     public function testConstraintSql(string $name, array $data, string $expected): void
     {
         $driver = $this->_getMockedDriver();

@@ -21,6 +21,8 @@ use Cake\Log\Engine\FileLog;
 use Cake\Log\Log;
 use Cake\TestSuite\TestCase;
 use InvalidArgumentException;
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\WithoutErrorHandler;
 
 /**
  * LogTest class
@@ -31,6 +33,7 @@ class LogTest extends TestCase
     {
         parent::setUp();
         Log::reset();
+        $this->clearPlugins();
     }
 
     public function tearDown(): void
@@ -153,9 +156,9 @@ class LogTest extends TestCase
     /**
      * Test the various config call signatures.
      *
-     * @dataProvider configProvider
      * @param mixed $settings
      */
+    #[DataProvider('configProvider')]
     public function testConfigVariants($settings): void
     {
         Log::setConfig('test', $settings);
@@ -167,9 +170,9 @@ class LogTest extends TestCase
     /**
      * Test the various setConfig call signatures.
      *
-     * @dataProvider configProvider
      * @param mixed $settings
      */
+    #[DataProvider('configProvider')]
     public function testSetConfigVariants($settings): void
     {
         Log::setConfig('test', $settings);
@@ -399,6 +402,7 @@ class LogTest extends TestCase
     /**
      * Test scoped logging backwards compat
      */
+    #[WithoutErrorHandler]
     public function testScopedLoggingBackwardsCompat(): void
     {
         $this->_deleteLogs();

@@ -24,6 +24,7 @@ use Cake\ORM\Marshaller;
 use Cake\TestSuite\TestCase;
 use Cake\Validation\Validator;
 use InvalidArgumentException;
+use PHPUnit\Framework\Attributes\DataProvider;
 use TestApp\Model\Entity\OpenArticleEntity;
 use TestApp\Model\Entity\OpenTag;
 use TestApp\Model\Entity\ProtectedArticle;
@@ -1322,9 +1323,9 @@ class MarshallerTest extends TestCase
     /**
      * Test merging empty values into an entity.
      *
-     * @dataProvider emptyProvider
      * @param mixed $value
      */
+    #[DataProvider('emptyProvider')]
     public function testMergeFalseyValues($value): void
     {
         $marshall = new Marshaller($this->articles);
@@ -1799,7 +1800,7 @@ class MarshallerTest extends TestCase
      */
     public function testMergeBelongsToManyFromIdsWithConditions(): void
     {
-        $this->articles->belongsToMany('Tags', [
+        $this->articles->associations()->get('Tags')->setConditions([
             'conditions' => ['ArticleTags.article_id' => 1],
         ]);
 
@@ -1832,7 +1833,7 @@ class MarshallerTest extends TestCase
      */
     public function testMergeBelongsToManyFromArrayWithConditions(): void
     {
-        $this->articles->belongsToMany('Tags', [
+        $this->articles->associations()->get('Tags')->setConditions([
             'conditions' => ['ArticleTags.article_id' => 1],
         ]);
 
@@ -2325,7 +2326,6 @@ class MarshallerTest extends TestCase
      */
     public function testMergeBelongsToManyIdsRetainJoinData(): void
     {
-        $this->articles->belongsToMany('Tags');
         $entity = $this->articles->get(1, ...['contain' => ['Tags']]);
         $entity->setAccess('*', true);
         $original = $entity->tags[0]->_joinData;

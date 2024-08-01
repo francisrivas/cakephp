@@ -257,7 +257,7 @@ class SelectLoader
         if (!$select) {
             return;
         }
-        $missingKey = function ($fieldList, $key) {
+        $missingKey = function ($fieldList, $key): bool {
             foreach ($key as $keyField) {
                 if (!in_array($keyField, $fieldList, true)) {
                     return true;
@@ -290,7 +290,7 @@ class SelectLoader
      * filtering needs to be done using a subquery.
      *
      * @param \Cake\ORM\Query\SelectQuery $query Target table's query
-     * @param array<string>|string $key the fields that should be used for filtering
+     * @param list<string>|string $key the fields that should be used for filtering
      * @param \Cake\ORM\Query\SelectQuery $subquery The Subquery to use for filtering
      * @return \Cake\ORM\Query\SelectQuery
      */
@@ -326,7 +326,7 @@ class SelectLoader
      * target table query given a filter key and some filtering values.
      *
      * @param \Cake\ORM\Query\SelectQuery $query Target table's query
-     * @param array<string>|string $key The fields that should be used for filtering
+     * @param list<string>|string $key The fields that should be used for filtering
      * @param mixed $filter The value that should be used to match for $key
      * @return \Cake\ORM\Query\SelectQuery
      */
@@ -373,7 +373,7 @@ class SelectLoader
      * which the filter should be applied
      *
      * @param array<string, mixed> $options The options for getting the link field.
-     * @return array<string>|string
+     * @return list<string>|string
      * @throws \Cake\Database\Exception\DatabaseException
      */
     protected function _linkField(array $options): array|string

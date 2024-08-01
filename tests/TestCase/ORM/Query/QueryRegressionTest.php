@@ -28,6 +28,7 @@ use Cake\ORM\Query\SelectQuery;
 use Cake\TestSuite\TestCase;
 use DateTime as NativeDateTime;
 use InvalidArgumentException;
+use PHPUnit\Framework\Attributes\DataProvider;
 use function Cake\Collection\collection;
 
 /**
@@ -38,7 +39,7 @@ class QueryRegressionTest extends TestCase
     /**
      * Fixture to be used
      *
-     * @var array<string>
+     * @var list<string>
      */
     protected array $fixtures = [
         'core.Articles',
@@ -312,9 +313,9 @@ class QueryRegressionTest extends TestCase
      * Checks that only relevant associations are passed when saving _joinData
      * Tests that _joinData can also save deeper associations
      *
-     * @dataProvider strategyProvider
      * @param string $strategy
      */
+    #[DataProvider('strategyProvider')]
     public function testBelongsToManyDeepSave($strategy): void
     {
         $articles = $this->getTableLocator()->get('Articles');
@@ -325,6 +326,7 @@ class QueryRegressionTest extends TestCase
             'saveStrategy' => $strategy,
         ]);
         $articles->Highlights->junction()->belongsTo('Authors');
+        $articles->Highlights->associations()->remove('Authors');
         $articles->Highlights->hasOne('Authors', [
             'foreignKey' => 'id',
         ]);
@@ -608,10 +610,7 @@ class QueryRegressionTest extends TestCase
             ->contain('Tags.TagsTranslations')
             ->all();
 
-        $tags->hasMany('TagsTranslations', [
-            'foreignKey' => 'id',
-            'strategy' => 'subquery',
-        ]);
+        $tags->TagsTranslations->setStrategy('subquery');
         $findViaSubquery = $featuredTags
             ->find()
             ->where(['FeaturedTags.tag_id' => 2])

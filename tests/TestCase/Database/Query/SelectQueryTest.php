@@ -16,6 +16,7 @@ declare(strict_types=1);
  */
 namespace Cake\Test\TestCase\Database\Query;
 
+use ArrayIterator;
 use Cake\Database\Connection;
 use Cake\Database\Driver\Mysql;
 use Cake\Database\Driver\Postgres;
@@ -2817,12 +2818,13 @@ class SelectQueryTest extends TestCase
         }
         $this->assertSame(3, $count);
 
+        $iterable = $query->getIterator();
+        $this->assertInstanceOf(ArrayIterator::class, $iterable);
+
         $this->connection->execute('DELETE FROM articles WHERE author_id = 3')->closeCursor();
 
-        // Mark query as dirty
-        $query->select(['id'], true);
+        $query->disableBufferedResults();
 
-        // Verify all() is called again
         $count = 0;
         foreach ($query as $row) {
             ++$count;
@@ -2830,12 +2832,13 @@ class SelectQueryTest extends TestCase
             $this->assertSame('test', $row['generated']);
         }
         $this->assertSame(2, $count);
+
+        $iterable = $query->getIterator();
+        $this->assertInstanceOf(StatementInterface::class, $iterable);
     }
 
     /**
      * Tests that functions are correctly transformed and their parameters are bound
-     *
-     * @group FunctionExpression
      */
     public function testSQLFunctions(): void
     {

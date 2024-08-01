@@ -17,9 +17,12 @@ declare(strict_types=1);
 namespace Cake\Test\TestCase\Controller;
 
 use AssertionError;
+use Cake\Controller\Component\FlashComponent;
+use Cake\Controller\ComponentRegistry;
 use Cake\Controller\Controller;
 use Cake\Controller\Exception\MissingActionException;
 use Cake\Core\Configure;
+use Cake\Core\Container;
 use Cake\Datasource\Paging\PaginatedInterface;
 use Cake\Event\Event;
 use Cake\Event\EventInterface;
@@ -32,6 +35,7 @@ use Cake\View\View;
 use Cake\View\XmlView;
 use InvalidArgumentException;
 use Laminas\Diactoros\Uri;
+use PHPUnit\Framework\Attributes\DataProvider;
 use ReflectionFunction;
 use RuntimeException;
 use TestApp\Controller\Admin\PostsController as AdminPostsController;
@@ -55,7 +59,7 @@ class ControllerTest extends TestCase
     /**
      * fixtures property
      *
-     * @var array<string>
+     * @var list<string>
      */
     protected array $fixtures = [
         'core.Comments',
@@ -478,9 +482,8 @@ class ControllerTest extends TestCase
 
     /**
      * testRedirect method
-     *
-     * @dataProvider statusCodeProvider
      */
+    #[DataProvider('statusCodeProvider')]
     public function testRedirectByCode(int $code, string $msg): void
     {
         $Controller = new Controller(new ServerRequest());
@@ -978,6 +981,29 @@ class ControllerTest extends TestCase
         } catch (RuntimeException $e) {
             $this->assertStringContainsString('The `FormProtection` alias has already been loaded', $e->getMessage());
         }
+    }
+
+    /**
+     * Test adding a component with container passed to controller
+     */
+    public function testLoadComponentWithContainer(): void
+    {
+        $container = new Container();
+        $container->add(FlashComponent::class, function (ComponentRegistry $registry, array $config) {
+            return new FlashComponent($registry, $config);
+        })
+        ->addArgument(ComponentRegistry::class)
+        ->addArgument(['key' => 'customFlash']);
+
+        $request = new ServerRequest(['url' => '/']);
+
+        $controller = new TestController($request);
+        $result = $controller->loadComponent('Flash');
+        $this->assertInstanceOf(FlashComponent::class, $result);
+        $this->assertSame($result, $controller->Flash);
+
+        $registry = $controller->components();
+        $this->assertTrue(isset($registry->Flash));
     }
 
     /**

@@ -16,6 +16,7 @@ declare(strict_types=1);
  */
 namespace Cake\Test\TestCase\ORM;
 
+use Cake\Core\Exception\CakeException;
 use Cake\ORM\Association\BelongsTo;
 use Cake\ORM\Association\BelongsToMany;
 use Cake\ORM\AssociationCollection;
@@ -23,6 +24,7 @@ use Cake\ORM\Entity;
 use Cake\ORM\Locator\LocatorInterface;
 use Cake\TestSuite\TestCase;
 use InvalidArgumentException;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 /**
  * AssociationCollection test case.
@@ -183,8 +185,8 @@ class AssociationCollectionTest extends TestCase
      *
      * @param string $belongsToStr
      * @param string $belongsToManyStr
-     * @dataProvider associationCollectionType
      */
+    #[DataProvider('associationCollectionType')]
     public function testGetByType($belongsToStr, $belongsToManyStr): void
     {
         $belongsTo = new BelongsTo('');
@@ -435,5 +437,15 @@ class AssociationCollectionTest extends TestCase
         $expected = ['Users' => $belongsTo, 'Cart' => $belongsToMany];
         $result = iterator_to_array($this->associations, true);
         $this->assertSame($expected, $result);
+    }
+
+    public function testExceptionOnDuplicateAlias(): void
+    {
+        $this->expectException(CakeException::class);
+        $this->expectExceptionMessage('Association alias `Users` is already set.');
+
+        $belongsTo = new BelongsTo('');
+        $this->associations->add('Users', $belongsTo);
+        $this->associations->add('Users', $belongsTo);
     }
 }

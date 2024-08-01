@@ -23,6 +23,7 @@ use Cake\Datasource\Paging\Exception\PageOutOfBoundsException;
 use Cake\Datasource\Paging\NumericPaginator;
 use Cake\Datasource\RepositoryInterface;
 use Cake\ORM\Query\SelectQuery;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 trait PaginatorTestTrait
 {
@@ -161,11 +162,11 @@ trait PaginatorTestTrait
     public function testPaginateNestedEagerLoader(): void
     {
         $articles = $this->getTableLocator()->get('Articles');
-        $articles->belongsToMany('Tags');
         $tags = $this->getTableLocator()->get('Tags');
+        $tags->associations()->remove('Authors');
         $tags->belongsToMany('Authors');
         $articles->getEventManager()->on('Model.beforeFind', function ($event, $query): void {
-            $query ->matching('Tags', function ($q) {
+            $query->matching('Tags', function ($q) {
                 return $q->matching('Authors', function ($q) {
                     return $q->where(['Authors.name' => 'larry']);
                 });
@@ -1113,9 +1114,8 @@ trait PaginatorTestTrait
 
     /**
      * test that maxLimit is respected
-     *
-     * @dataProvider checkLimitProvider
      */
+    #[DataProvider('checkLimitProvider')]
     public function testCheckLimit(array $input, int $expected): void
     {
         $result = $this->Paginator->checkLimit($input);

@@ -28,6 +28,7 @@ use Cake\Routing\RouteCollection;
 use Cake\Routing\Router;
 use Cake\TestSuite\TestCase;
 use InvalidArgumentException;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 /**
  * RouteBuilder test case
@@ -1023,7 +1024,7 @@ class RouteBuilderTest extends TestCase
     public function testApplyMiddlewareInvalidName(): void
     {
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('Cannot apply \'bad\' middleware or middleware group. Use registerMiddleware() to register middleware');
+        $this->expectExceptionMessage('Cannot apply `bad` middleware or middleware group. Use `registerMiddleware()` to register middleware');
         $routes = new RouteBuilder($this->collection, '/api');
         $routes->applyMiddleware('bad');
     }
@@ -1110,9 +1111,8 @@ class RouteBuilderTest extends TestCase
 
     /**
      * Test that the HTTP method helpers create the right kind of routes.
-     *
-     * @dataProvider httpMethodProvider
      */
+    #[DataProvider('httpMethodProvider')]
     public function testHttpMethods(string $method): void
     {
         $routes = new RouteBuilder($this->collection, '/', [], ['namePrefix' => 'app:']);
@@ -1133,9 +1133,8 @@ class RouteBuilderTest extends TestCase
 
     /**
      * Test that the HTTP method helpers create the right kind of routes.
-     *
-     * @dataProvider httpMethodProvider
      */
+    #[DataProvider('httpMethodProvider')]
     public function testHttpMethodsStringTarget(string $method): void
     {
         $routes = new RouteBuilder($this->collection, '/', [], ['namePrefix' => 'app:']);

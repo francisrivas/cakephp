@@ -318,7 +318,7 @@ abstract class CacheEngine implements CacheInterface, CacheEngineInterface
      * and returns the `group value` for each of them, this is
      * the token representing each group in the cache key
      *
-     * @return array<string>
+     * @return list<string>
      */
     public function groups(): array
     {
@@ -341,7 +341,7 @@ abstract class CacheEngine implements CacheInterface, CacheEngineInterface
 
         $prefix = '';
         if ($this->_groupPrefix) {
-            $prefix = md5(implode('_', $this->groups()));
+            $prefix = hash('xxh128', implode('_', $this->groups()));
         }
         $key = preg_replace('/[\s]+/', '_', $key);
 

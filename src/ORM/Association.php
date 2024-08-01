@@ -16,7 +16,6 @@ declare(strict_types=1);
  */
 namespace Cake\ORM;
 
-use Cake\Collection\Collection;
 use Cake\Collection\CollectionInterface;
 use Cake\Core\App;
 use Cake\Core\ConventionsTrait;
@@ -25,7 +24,6 @@ use Cake\Database\Expression\IdentifierExpression;
 use Cake\Database\Expression\QueryExpression;
 use Cake\Database\ExpressionInterface;
 use Cake\Datasource\EntityInterface;
-use Cake\Datasource\ResultSetDecorator;
 use Cake\Datasource\ResultSetInterface;
 use Cake\ORM\Locator\LocatorAwareTrait;
 use Cake\ORM\Query\SelectQuery;
@@ -112,14 +110,14 @@ abstract class Association
     /**
      * The field name in the owning side table that is used to match with the foreignKey
      *
-     * @var array<string>|string
+     * @var list<string>|string
      */
     protected array|string $_bindingKey;
 
     /**
      * The name of the field representing the foreign key to the table to load
      *
-     * @var array<string>|string|false
+     * @var list<string>|string|false
      */
     protected array|string|false $_foreignKey;
 
@@ -195,7 +193,7 @@ abstract class Association
     /**
      * Valid strategies for this association. Subclasses can narrow this down.
      *
-     * @var array<string>
+     * @var list<string>
      */
     protected array $_validStrategies = [
         self::STRATEGY_JOIN,
@@ -430,7 +428,7 @@ abstract class Association
      * Sets the name of the field representing the binding field with the target table.
      * When not manually specified the primary key of the owning side table is used.
      *
-     * @param array<string>|string $key the table field or fields to be used to link both tables together
+     * @param list<string>|string $key the table field or fields to be used to link both tables together
      * @return $this
      */
     public function setBindingKey(array|string $key)
@@ -444,7 +442,7 @@ abstract class Association
      * Gets the name of the field representing the binding field with the target table.
      * When not manually specified the primary key of the owning side table is used.
      *
-     * @return array<string>|string
+     * @return list<string>|string
      */
     public function getBindingKey(): array|string
     {
@@ -460,7 +458,7 @@ abstract class Association
     /**
      * Gets the name of the field representing the foreign key to the target table.
      *
-     * @return array<string>|string|false
+     * @return list<string>|string|false
      */
     public function getForeignKey(): array|string|false
     {
@@ -470,7 +468,7 @@ abstract class Association
     /**
      * Sets the name of the field representing the foreign key to the target table.
      *
-     * @param array<string>|string $key the key or keys to be used to link both tables together
+     * @param list<string>|string $key the key or keys to be used to link both tables together
      * @return $this
      */
     public function setForeignKey(array|string $key)
@@ -996,11 +994,12 @@ abstract class Association
                     }
                     $extracted[] = $result;
                 }
-                $extracted = new Collection($extracted);
+                $extracted = $query->resultSetFactory()->createResultSet($extracted);
+                $resultSetClass = $query->resultSetFactory()->getResultSetClass();
                 foreach ($formatters as $callable) {
                     $extracted = $callable($extracted, $query);
                     if (!$extracted instanceof ResultSetInterface) {
-                        $extracted = new ResultSetDecorator($extracted);
+                        $extracted = new $resultSetClass($extracted);
                     }
                 }
 

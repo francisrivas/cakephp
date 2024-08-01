@@ -33,6 +33,7 @@ use Cake\ORM\ResultSet;
 use Cake\TestSuite\TestCase;
 use InvalidArgumentException;
 use Mockery;
+use PHPUnit\Framework\Attributes\DataProvider;
 use function Cake\I18n\__;
 
 /**
@@ -43,7 +44,7 @@ class HasManyTest extends TestCase
     /**
      * Fixtures
      *
-     * @var array<string>
+     * @var list<string>
      */
     protected array $fixtures = [
         'core.Comments',
@@ -191,7 +192,7 @@ class HasManyTest extends TestCase
     public function testSorting(): void
     {
         $authors = $this->getTableLocator()->get('Authors');
-        $assoc = $authors->hasMany('Articles');
+        $assoc = $authors->Articles;
 
         $field = 'Articles.id';
         $driver = $authors->getConnection()->getDriver();
@@ -471,9 +472,7 @@ class HasManyTest extends TestCase
             ->with('all')
             ->willReturn($query);
 
-        $results = new ResultSet([]);
-
-        $results->__unserialize([
+        $results = new ResultSet([
             ['id' => 1, 'title' => 'article 1', 'author_id' => 2, 'site_id' => 10],
             ['id' => 2, 'title' => 'article 2', 'author_id' => 1, 'site_id' => 20],
         ]);
@@ -512,7 +511,6 @@ class HasManyTest extends TestCase
     public function testEagerloaderNoForeignKeys(): void
     {
         $authors = $this->getTableLocator()->get('Authors');
-        $authors->hasMany('Articles');
 
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Unable to load `Articles` association. Ensure foreign key in `Authors`');
@@ -676,9 +674,7 @@ class HasManyTest extends TestCase
     public function testPropertyOptionMarshalAndValidation(): void
     {
         $authors = $this->getTableLocator()->get('Authors');
-        $authors->hasMany('Articles', [
-            'propertyName' => 'blogs',
-        ]);
+        $authors->Articles->setProperty('blogs');
         $authors->getValidator()
             ->requirePresence('blogs', true, 'blogs must be set');
 
@@ -713,9 +709,7 @@ class HasManyTest extends TestCase
     public function testValueBinderUpdateOnSubQueryStrategy(): void
     {
         $Authors = $this->getTableLocator()->get('Authors');
-        $Authors->hasMany('Articles', [
-            'strategy' => Association::STRATEGY_SUBQUERY,
-        ]);
+        $Authors->Articles->setStrategy(Association::STRATEGY_SUBQUERY);
 
         $query = $Authors->find();
         $authorsAndArticles = $query
@@ -740,9 +734,7 @@ class HasManyTest extends TestCase
     public function testSubqueryWithLimit()
     {
         $Authors = $this->getTableLocator()->get('Authors');
-        $Authors->hasMany('Articles', [
-            'strategy' => Association::STRATEGY_SUBQUERY,
-        ]);
+        $Authors->Articles->setStrategy(Association::STRATEGY_SUBQUERY);
 
         $query = $Authors->find();
         $result = $query
@@ -765,9 +757,7 @@ class HasManyTest extends TestCase
         $this->skipIf(ConnectionManager::get('test')->getDriver() instanceof Sqlserver, 'Sql Server does not support ORDER BY on field not in GROUP BY');
 
         $Authors = $this->getTableLocator()->get('Authors');
-        $Authors->hasMany('Articles', [
-            'strategy' => Association::STRATEGY_SUBQUERY,
-        ]);
+        $Authors->Articles->setStrategy(Association::STRATEGY_SUBQUERY);
 
         $query = $Authors->find();
         $result = $query
@@ -852,10 +842,7 @@ class HasManyTest extends TestCase
     public function testUnlinkSuccess(): void
     {
         $articles = $this->getTableLocator()->get('Articles');
-        $assoc = $this->author->hasMany('Articles', [
-            'sourceTable' => $this->author,
-            'targetTable' => $articles,
-        ]);
+        $assoc = $this->author->Articles;
 
         $entity = $this->author->get(1, ...['contain' => 'Articles']);
         $initial = $entity->articles;
@@ -876,10 +863,7 @@ class HasManyTest extends TestCase
     public function testUnlinkWithEmptyArray(): void
     {
         $articles = $this->getTableLocator()->get('Articles');
-        $assoc = $this->author->hasMany('Articles', [
-            'sourceTable' => $this->author,
-            'targetTable' => $articles,
-        ]);
+        $assoc = $this->author->Articles;
 
         $entity = $this->author->get(1, ...['contain' => 'Articles']);
         $initial = $entity->articles;
@@ -899,10 +883,7 @@ class HasManyTest extends TestCase
     public function testLinkUsesSingleTransaction(): void
     {
         $articles = $this->getTableLocator()->get('Articles');
-        $assoc = $this->author->hasMany('Articles', [
-            'sourceTable' => $this->author,
-            'targetTable' => $articles,
-        ]);
+        $assoc = $this->author->Articles;
 
         // Ensure author in fixture has zero associated articles
         $entity = $this->author->get(2, ...['contain' => 'Articles']);
@@ -963,9 +944,9 @@ class HasManyTest extends TestCase
      * Test that saving empty sets with the `append` strategy does not
      * affect the associated records for not yet persisted parent entities.
      *
-     * @dataProvider emptySetDataProvider
      * @param mixed $value Empty value.
      */
+    #[DataProvider('emptySetDataProvider')]
     public function testSaveAssociatedEmptySetWithAppendStrategyDoesNotAffectAssociatedRecordsOnCreate($value): void
     {
         $articles = $this->getTableLocator()->get('Articles');
@@ -988,9 +969,9 @@ class HasManyTest extends TestCase
      * Test that saving empty sets with the `append` strategy does not
      * affect the associated records for already persisted parent entities.
      *
-     * @dataProvider emptySetDataProvider
      * @param mixed $value Empty value.
      */
+    #[DataProvider('emptySetDataProvider')]
     public function testSaveAssociatedEmptySetWithAppendStrategyDoesNotAffectAssociatedRecordsOnUpdate($value): void
     {
         $articles = $this->getTableLocator()->get('Articles');
@@ -1018,9 +999,9 @@ class HasManyTest extends TestCase
      * Test that saving empty sets with the `replace` strategy does not
      * affect the associated records for not yet persisted parent entities.
      *
-     * @dataProvider emptySetDataProvider
      * @param mixed $value Empty value.
      */
+    #[DataProvider('emptySetDataProvider')]
     public function testSaveAssociatedEmptySetWithReplaceStrategyDoesNotAffectAssociatedRecordsOnCreate($value): void
     {
         $articles = $this->getTableLocator()->get('Articles');
@@ -1043,9 +1024,9 @@ class HasManyTest extends TestCase
      * Test that saving empty sets with the `replace` strategy does remove
      * the associated records for already persisted parent entities.
      *
-     * @dataProvider emptySetDataProvider
      * @param mixed $value Empty value.
      */
+    #[DataProvider('emptySetDataProvider')]
     public function testSaveAssociatedEmptySetWithReplaceStrategyRemovesAssociatedRecordsOnUpdate($value): void
     {
         $articles = $this->getTableLocator()->get('Articles');
@@ -1139,7 +1120,7 @@ class HasManyTest extends TestCase
     public function testSaveReplaceSaveStrategy(): void
     {
         $authors = $this->getTableLocator()->get('Authors');
-        $authors->hasMany('Articles', ['saveStrategy' => HasMany::SAVE_REPLACE]);
+        $authors->Articles->setSaveStrategy(HasMany::SAVE_REPLACE);
 
         $entity = $authors->newEntity([
             'name' => 'mylux',
@@ -1170,7 +1151,7 @@ class HasManyTest extends TestCase
     public function testSaveReplaceSaveStrategyClosureConditions(): void
     {
         $authors = $this->getTableLocator()->get('Authors');
-        $authors->hasMany('Articles')
+        $authors->Articles
             ->setDependent(true)
             ->setSaveStrategy('replace')
             ->setConditions(function () {
@@ -1211,7 +1192,7 @@ class HasManyTest extends TestCase
     public function testSaveReplaceSaveStrategyNotAdding(): void
     {
         $authors = $this->getTableLocator()->get('Authors');
-        $authors->hasMany('Articles', ['saveStrategy' => 'replace']);
+        $authors->Articles->setSaveStrategy('replace');
 
         $entity = $authors->newEntity([
             'name' => 'mylux',
@@ -1239,7 +1220,7 @@ class HasManyTest extends TestCase
     public function testSaveAppendSaveStrategy(): void
     {
         $authors = $this->getTableLocator()->get('Authors');
-        $authors->hasMany('Articles', ['saveStrategy' => 'append']);
+        $authors->Articles->setSaveStrategy('append');
 
         $entity = $authors->newEntity([
             'name' => 'mylux',
@@ -1271,8 +1252,8 @@ class HasManyTest extends TestCase
     public function testSaveDefaultSaveStrategy(): void
     {
         $authors = $this->getTableLocator()->get('Authors');
-        $authors->hasMany('Articles', ['saveStrategy' => HasMany::SAVE_APPEND]);
-        $this->assertSame(HasMany::SAVE_APPEND, $authors->getAssociation('articles')->getSaveStrategy());
+        $authors->Articles->setSaveStrategy(HasMany::SAVE_APPEND);
+        $this->assertSame(HasMany::SAVE_APPEND, $authors->getAssociation('Articles')->getSaveStrategy());
     }
 
     /**
@@ -1281,7 +1262,8 @@ class HasManyTest extends TestCase
     public function testSaveReplaceSaveStrategyDependent(): void
     {
         $authors = $this->getTableLocator()->get('Authors');
-        $authors->hasMany('Articles', ['saveStrategy' => HasMany::SAVE_REPLACE, 'dependent' => true]);
+        $authors->Articles->setSaveStrategy(HasMany::SAVE_REPLACE)
+            ->setDependent(true);
 
         $entity = $authors->newEntity([
             'name' => 'mylux',
@@ -1313,7 +1295,8 @@ class HasManyTest extends TestCase
     public function testSaveReplaceSaveStrategyDependentWithStringKeys(): void
     {
         $authors = $this->getTableLocator()->get('Authors');
-        $authors->hasMany('Articles', ['saveStrategy' => HasMany::SAVE_REPLACE, 'dependent' => true]);
+        $authors->Articles->setSaveStrategy(HasMany::SAVE_REPLACE)
+            ->setDependent(true);
 
         $entity = $authors->newEntity([
             'name' => 'mylux',
@@ -1351,11 +1334,9 @@ class HasManyTest extends TestCase
         $this->setAppNamespace('TestApp');
 
         $authors = $this->getTableLocator()->get('Authors');
-        $authors->hasMany('Articles', [
-            'finder' => 'published',
-            'saveStrategy' => HasMany::SAVE_REPLACE,
-            'dependent' => true,
-        ]);
+        $authors->Articles->setSaveStrategy(HasMany::SAVE_REPLACE)
+            ->setDependent(true)
+            ->setFinder('published');
         $articles = $authors->Articles->getTarget();
 
         // Remove an article from the association finder scope
